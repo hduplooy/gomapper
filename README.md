@@ -2,7 +2,9 @@
 
 ## Basic map and for-each functionality in golang (also concurrent versions)
 
-These functions apply a provided functions to successive elements of provided slices. For example if we want to combine the successive
+These functions apply a provided functions to successive elements of provided slices. The concurrent versions can be used for basic map-reduce actions.
+
+For example if we want to combine the successive
 elements of [John,Peter,Susan], [12,15,13] and [1.23, 1.5, 1.14] to generate a html table we can do it as follows:
 
     package main
