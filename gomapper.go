@@ -19,6 +19,8 @@ type ForEachFunc func(elms []interface{}) error
 type ForEachConcFunc func(elms []interface{}, pos int) error
 type FilterFunc func(elm interface{}) bool
 
+type IFArr []interface{}
+
 // Map apply a function f successively to the slice of slices vals and return a slice of type dstif
 // dstif - the type of slice that need to be returned
 // f - the function to apply
@@ -121,7 +123,9 @@ func MapConc(dstif interface{}, f MapConcFunc, vals ...interface{}) (interface{}
 	return slice.Interface(), err
 }
 
-func Filter(dstif interface{}, f FilterFunc, vals interface{}) interface{} {
+func Filter(f FilterFunc, vals interface{}) interface{} {
+	dstif := reflect.ValueOf(vals).Index(0).Interface()
+
 	sz := reflect.ValueOf(vals).Len()
 
 	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(dstif)), 0, 0)
@@ -133,6 +137,10 @@ func Filter(dstif interface{}, f FilterFunc, vals interface{}) interface{} {
 		}
 	}
 	return slice.Interface()
+}
+
+func (arr IFArr) Filter(f FilterFunc) interface{} {
+	return Filter(f, arr)
 }
 
 func Count(f FilterFunc, vals interface{}) int {

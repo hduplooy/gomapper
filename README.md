@@ -2,6 +2,8 @@
 
 ## Basic map and for-each functionality in golang (also concurrent versions)
 
+**These are changed to a better working set of functions**
+
 These functions apply a provided functions to successive elements of provided slices. The concurrent versions can be used for basic map-reduce actions.
 
 For example if we want to combine the successive
