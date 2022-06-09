@@ -135,7 +135,7 @@ func Filter(dstif interface{}, f FilterFunc, vals interface{}) interface{} {
 	return slice.Interface()
 }
 
-func Count(dstif interface{}, f FilterFunc, vals interface{}) int {
+func Count(f FilterFunc, vals interface{}) int {
 	sz := reflect.ValueOf(vals).Len()
 
 	cnt := 0
