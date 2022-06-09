@@ -1,6 +1,5 @@
 // github.com/hduplooy/gomapper
 // Author: Hannes du Plooy
-// Revision Date: 29 Sep 2016
 // Mapper function calls in go
 // Map - will apply a function to a slice of slices and return a slice based on the application of the function
 // ForEach - similar to Map but does not return a slice
@@ -18,6 +17,7 @@ type MapFunc func(elms []interface{}) (interface{}, error)
 type MapConcFunc func(elms []interface{}, pos int) (interface{}, error)
 type ForEachFunc func(elms []interface{}) error
 type ForEachConcFunc func(elms []interface{}, pos int) error
+type FilterFunc func(elm interface{}) bool
 
 // Map apply a function f successively to the slice of slices vals and return a slice of type dstif
 // dstif - the type of slice that need to be returned
@@ -119,6 +119,16 @@ func MapConc(dstif interface{}, f MapConcFunc, vals ...interface{}) (interface{}
 		cnt++
 	}
 	return slice.Interface(), err
+}
+
+func Filter(dstif interface{}, f FilterFunc, vals ...interface{}) interface{} {
+	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(dstif)), 0, 0)
+	for i := 0; i < len(vals); i++ {
+		if f(vals[i]) {
+			slice = reflect.Append(slice, reflect.ValueOf(vals[i]))
+		}
+	}
+	return slice.Interface()
 }
 
 // ForEach will apply f successively on the slice of slices vals and only returns an error if any
