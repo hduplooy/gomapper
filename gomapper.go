@@ -121,11 +121,15 @@ func MapConc(dstif interface{}, f MapConcFunc, vals ...interface{}) (interface{}
 	return slice.Interface(), err
 }
 
-func Filter(dstif interface{}, f FilterFunc, vals ...interface{}) interface{} {
+func Filter(dstif interface{}, f FilterFunc, vals interface{}) interface{} {
+	sz := reflect.ValueOf(vals).Len()
+
 	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(dstif)), 0, 0)
-	for i := 0; i < len(vals); i++ {
-		if f(vals[i]) {
-			slice = reflect.Append(slice, reflect.ValueOf(vals[i]))
+
+	for i := 0; i < sz; i++ {
+		val := reflect.ValueOf(vals).Index(i).Interface()
+		if f(val) {
+			slice = reflect.Append(slice, reflect.ValueOf(val))
 		}
 	}
 	return slice.Interface()
