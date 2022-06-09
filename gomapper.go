@@ -135,6 +135,20 @@ func Filter(dstif interface{}, f FilterFunc, vals interface{}) interface{} {
 	return slice.Interface()
 }
 
+func Count(dstif interface{}, f FilterFunc, vals interface{}) int {
+	sz := reflect.ValueOf(vals).Len()
+
+	cnt := 0
+
+	for i := 0; i < sz; i++ {
+		val := reflect.ValueOf(vals).Index(i).Interface()
+		if f(val) {
+			cnt++
+		}
+	}
+	return cnt
+}
+
 // ForEach will apply f successively on the slice of slices vals and only returns an error if any
 // f - function to apply
 // vals - the slice of slices to apply
