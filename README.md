@@ -4,6 +4,8 @@
 
 **These are changed to a better working set of functions**
 
+### Map
+
 These functions apply a provided functions to successive elements of provided slices. The concurrent versions can be used for basic map-reduce actions.
 
 For example if we want to combine the successive
@@ -34,6 +36,8 @@ elements of [John,Peter,Susan], [12,15,13] and [1.23, 1.5, 1.14] to generate a h
     <tr><td>Peter</td><td>15</td><td>1.5</td></tr>
     <tr><td>Susan</td><td>13</td><td>1.14</td></tr>
 
+### ForEach
+
 If we didn't want to return the results but rather just send it out directly with fmt.Printf or fmt.Fprintf we can do it as follows:
 
     package main
@@ -57,6 +61,8 @@ If we didn't want to return the results but rather just send it out directly wit
 
 This will just print the same results out, but only return an error if any.
 
+### Fold
+
 The Fold function will apply a function successively on values in a slice and return the result when applied to all values. If for
 example we want to add the integers provided in a slice (and let's assume it was a much more involved operation than simple sums).
 
@@ -79,6 +85,8 @@ This will apply the function first to 1 and 2, and then to the result and 3 and 
 
 ((((((((1+2) + 3) + 4) + 5) + 6) + 7) + 8) + 9)
 
+### Filter
+
 To filter an array of values one can use the Filter function with arguments a function that will return true or false on an individual value and an array of values. The returned array is of the same type as the input array.
 
     package main        
@@ -98,6 +106,8 @@ To filter an array of values one can use the Filter function with arguments a fu
 
 Here we filter an array of integers 1 to 10 based on if the element is even (divisible by 2).
 
+### Count
+
 Similar to Filter you can also Count the number of elements for which the provided function returns true.
 
     package main
@@ -116,6 +126,8 @@ Similar to Filter you can also Count the number of elements for which the provid
     }
 
 This will count the number of even numbers in the provided integer array.
+
+### MapConc
 
 To do Map and ForEach calling of the provided function concurrently use MapConc and ForEachConc. For example, let's say once again
 summation was really hard (which it obviously isn't) and we wanted several computers to help in doing it, we can accomplish it as follows:
