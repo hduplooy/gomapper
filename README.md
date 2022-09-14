@@ -79,6 +79,44 @@ This will apply the function first to 1 and 2, and then to the result and 3 and 
 
 ((((((((1+2) + 3) + 4) + 5) + 6) + 7) + 8) + 9)
 
+To filter an array of values one can use the Filter function with arguments a function that will return true or false on an individual value and an array of values. The returned array is of the same type as the input array.
+
+    package main        
+    
+    import (
+        "fmt"
+    
+        mp "github.com/hduplooy/gomapper"
+    )
+    
+    func main() {
+        ans := mp.Filter(func(val1 interface{}) bool {
+            return val1.(int) % 2 == 0
+        }, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+        fmt.Printf("%v\n",ans)
+    }
+
+Here we filter an array of integers 1 to 10 based on if the element is even (divisible by 2).
+
+Similar to Filter you can also Count the number of elements for which the provided function returns true.
+
+    package main
+    
+    import (
+        "fmt"
+    
+        mp "github.com/hduplooy/gomapper"
+    )
+    
+    func main() {
+        ans := mp.Count(func(val1 interface{}) bool {
+            return val1.(int) % 2 == 0
+        }, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+        fmt.Printf("%v\n",ans)
+    }
+
+This will count the number of even numbers in the provided integer array.
+
 To do Map and ForEach calling of the provided function concurrently use MapConc and ForEachConc. For example, let's say once again
 summation was really hard (which it obviously isn't) and we wanted several computers to help in doing it, we can accomplish it as follows:
 
