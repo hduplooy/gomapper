@@ -130,107 +130,117 @@ This will count the number of even numbers in the provided integer array.
 ### MapConc
 
 To do Map and ForEach calling of the provided function concurrently use MapConc and ForEachConc. For example, let's say once again
-summation was really hard (which it obviously isn't) and we wanted several computers to help in doing it, we can accomplish it as follows:
+summation was really hard (which it obviously isn't in this case) and we wanted several computers or processes to help in doing it, we can accomplish it as follows:
 
 Let's make use of json-rpc to be the golang server that does the summations for us, then we can do that as follows:
 
     // Simple json-rpc server to summate a slice of integers and return it
     package main
-
+    
     import (
-	    "log"
-	    "net"
-	    "net/rpc"
-	    "net/rpc/jsonrpc"
+        "fmt"
+        "log"
+        "net"
+        "net/rpc"
+        "net/rpc/jsonrpc"
+        "os"
     )
-
+    
     type Agg struct{}
-
+    
     // Actual function that does the summation of integers
     func (t *Agg) Sum(args *[]int, reply *int) error {
-	    var ans int
-	    for _, val := range *args {
-		    ans += val
-	    }
-	    *reply = ans
-	    return nil
+        var ans int
+        for _, val := range *args {
+            ans += val
+        }
+        *reply = ans
+        return nil
+    }
+    
+    func main() {
+        fmt.Printf("all args: %d first arg: %s\n",len(os.Args),os.Args[1])
+        if len(os.Args) < 2 {
+            log.Fatal("Please provide a port number for the server")
+        }
+        cal := new(Agg)
+        server := rpc.NewServer()
+        server.Register(cal)
+        server.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
+        listener, e := net.Listen("tcp", ":" + os.Args[1])
+        if e != nil {
+            log.Fatal("listen error:", e)
+        }
+        for {
+            if conn, err := listener.Accept(); err != nil {
+                log.Fatal("accept error: " + err.Error())
+            } else {
+                log.Printf("new connection established\n")
+                go server.ServeCodec(jsonrpc.NewServerCodec(conn))
+            }
+        }
     }
 
-    func main() {
-	    cal := new(Agg)
-	    server := rpc.NewServer()
-	    server.Register(cal)
-	    server.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
-	    listener, e := net.Listen("tcp", ":9999")
-	    if e != nil {
-		    log.Fatal("listen error:", e)
-	    }
-	    for {
-		    if conn, err := listener.Accept(); err != nil {
-			    log.Fatal("accept error: " + err.Error())
-		    } else {
-			    log.Printf("new connection established\n")
-			    go server.ServeCodec(jsonrpc.NewServerCodec(conn))
-		    }
-	    }
-    }
 
 We can compile this and place it on all the servers were want it to run and start them on each machine. Now for the client part we can do the following:
 
     package main
-
+    
     import (
-	    "fmt"
-	    "log"
-	    "net"
-	    "net/rpc/jsonrpc"
-
-	    mp "github.com/hduplooy/gomapper"
+        "fmt"
+        "log"
+        "net"
+        "net/rpc/jsonrpc"
+    
+        mp "github.com/hduplooy/gomapper"
     )
-
+    
     // Function to do the actual calling of the json-rpc server to summate a slice of integers for us
     func rpcAdd(add string, args []int) int {
-	    client, err := net.Dial("tcp", add)
-	    if err != nil {
-		    log.Fatal("dialing:", err)
-		    return -1
-	    }
-	    var reply int
-	    c := jsonrpc.NewClient(client)
-	    err = c.Call("Agg.Sum", args, &reply)
-	    if err != nil {
-		    log.Fatal("arith error:", err)
-		    return -1
-	    }
-	    return reply
+        client, err := net.Dial("tcp", add)
+        if err != nil {
+            log.Fatal("dialing:", err)
+            return -1
+        }
+        var reply int
+        c := jsonrpc.NewClient(client)
+        err = c.Call("Agg.Sum", args, &reply)
+        if err != nil {
+            log.Fatal("arith error:", err)
+            return -1
+        }
+        return reply
     }
-
+    
     func main() {
-	    // IP Addresses of machines that we want to use to process our function
-      // Obviously the correct ones have to be used here
-	    addrs := []string{"10.0.0.10:9999", "10.0.0.11:9999", "10.0.0.13:9999"}
-
-      // Call MapConc to distribute the work for us
-	    sums, err := mp.MapConc(3, func(vals []interface{}, pos int) (interface{}, error) {
-        // Convert the interface{} to ints for the call to the rpc function
-		    ints := make([]int, len(vals))
-		    for i := 0; i < len(vals); i++ {
-			    ints[i] = vals[i].(int)
-		    }
-		    // let rpcAdd do the json-rpc call to the different servers to do the summations for us (use pos to select the server)
-		    return rpcAdd(addrs[pos], ints), nil
-	    }, []int{1, 2, 3}, []int{5, 6, 7}, []int{9, 10, 11})
-	    fmt.Printf("%v\n", sums)
-	    if err != nil {
-		    log.Println(err)
-		    return
-	    }
-
-	    // Just add the results together
-	    ans := mp.Fold(func(val1, val2 interface{}) interface{} {
-		    return val1.(int) + val2.(int)
-	    }, mp.ToInterface(sums.([]int))...)
-	    fmt.Printf("%d\n", ans)
+        // IP Addresses of machines that we want to use to process our function
+        // Obviously the correct ones have to be used here
+        addrs := []string{"127.0.0.1:9991", "127.0.0.1:9992", "127.0.0.1:9993"}
+    
+        // Call MapConc to distribute the work for us
+        sums, err := mp.MapConc(3, func(vals []interface{}, pos int) (interface{}, error) {
+            // Convert the interface{} to ints for the call to the rpc function
+            ints := make([]int, len(vals))
+            for i := 0; i < len(vals); i++ {
+                ints[i] = vals[i].(int)
+            }
+            // let rpcAdd do the json-rpc call to the different servers to do the summations for us (use pos to select the server)
+            return rpcAdd(addrs[pos], ints), nil
+        }, []int{1, 2, 3}, []int{5, 6, 7}, []int{9, 10, 11})
+        if err != nil {
+            log.Println(err)
+            return
+        }
+    
+        // Just add the results together
+        ans := mp.Fold(func(val1, val2 interface{}) interface{} {
+            return val1.(int) + val2.(int)
+        }, mp.ToInterfaceArr(sums)...)
+        fmt.Printf("Sum=%d\n", ans.(int))
     }
 
+### ToInterfaceArr
+
+    Functions like Fold expect an argument list of interface{} elements, so if one passes the output of Map or MapConc to it we need to convert it. 
+    Therefore ToInterfaceArr will take any array and convert it to []interface{}, as can be seen in the previous example.
 

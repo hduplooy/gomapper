@@ -259,12 +259,12 @@ func Fold(f func(val1, val2 interface{}) interface{}, vals ...interface{}) inter
 	return ans
 }
 
-func ToInterface(vals interface{}) []interface{} {
+func ToInterfaceArr(vals interface{}) []interface{} {
 	valsr := reflect.ValueOf(vals)
 	if valsr.Kind() != reflect.Slice {
 		return nil
 	}
-	ans := make([]interface{}, valsr.Len())
+	ans := make([]interface{}, 0, valsr.Len())
 	for i := 0; i < valsr.Len(); i++ {
 		ans = append(ans, valsr.Index(i).Interface())
 	}
